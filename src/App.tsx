@@ -5,13 +5,11 @@ import {
   CheckCircle2,
   ChevronLeft,
   CircleUserRound,
-  Compass,
   Edit3,
   Home,
   LineChart,
   Sparkles,
   Target,
-  UserRound,
 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { defaultProfile } from './data/sampleReport';
@@ -291,26 +289,21 @@ function HomeScreen({
         </button>
       </section>
 
-      <section className="grid grid-cols-3 gap-2">
-        {report.today.metrics.slice(1, 4).map((metric) => (
-          <MetricMini key={metric.label} metric={metric} />
-        ))}
-      </section>
-
       <section className="rounded-[28px] bg-white p-5 shadow-sm">
-        <SectionLabel icon={<CheckCircle2 size={17} />} title="오늘 체크리스트" />
+        <SectionLabel icon={<CheckCircle2 size={17} />} title="오늘은 이것만" />
         <div className="mt-5 grid gap-3">
-          <MissionLine index="1" title="오늘 할 일" value={report.today.advice} active />
-          <MissionLine index="2" title="집중할 것" value={report.today.focus} />
-          <MissionLine index="3" title="거리둘 것" value={report.today.avoid} />
+          <MissionLine index="1" title="해볼 것" value={report.today.advice} active />
+          <MissionLine index="2" title="덜어낼 것" value={report.today.avoid} />
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-[#eaf0ff] p-5">
-        <SectionLabel icon={<Target size={17} />} title="나한테 맞는 방향" />
-        <p className="mt-4 text-xl font-black leading-snug">{needed ? needed.need : relationshipCue(report)}</p>
-        <p className="mt-3 text-sm leading-6 text-slate-600">{needed ? needed.reason : '오늘은 관계의 속도를 내기보다 편한 접점을 만드는 쪽이 잘 맞아요.'}</p>
-      </section>
+      <button className="w-full rounded-[28px] bg-[#eaf0ff] p-5 text-left active:scale-[0.99]" onClick={() => onPickTab('me')}>
+        <SectionLabel icon={<Target size={17} />} title="궁금하면 더 보기" />
+        <p className="mt-4 text-xl font-black leading-snug">{needed ? `${needed.label} 기운이 필요해요` : relationshipCue(report)}</p>
+        <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
+          {needed ? needed.need : '오늘은 관계의 속도를 내기보다 편한 접점을 만드는 쪽이 잘 맞아요.'}
+        </p>
+      </button>
 
       <section className="grid gap-3 pb-2">
         <QuestionCard
@@ -360,7 +353,7 @@ function FlowScreen({
       <section>
         <SectionLabel icon={<CalendarDays size={17} />} title="연도별 변화" />
         <div className="mt-3 space-y-2">
-          {visibleYears.slice(0, 8).map((year) => (
+          {visibleYears.slice(0, 5).map((year) => (
             <YearRow key={year.year} year={year} active={year.year === selectedYear.year} onClick={() => onSelectYear(year)} />
           ))}
         </div>
@@ -383,13 +376,13 @@ function YearDetail({ year }: { year: YearFortune }) {
         ))}
       </div>
       <div className="mt-5 grid grid-cols-2 gap-2">
-        {year.metrics.slice(1, 5).map((metric) => (
+        {year.metrics.slice(1, 3).map((metric) => (
           <MetricMini key={metric.label} metric={metric} />
         ))}
       </div>
       <div className="mt-5 grid gap-4">
-        <ActionList title="이 해에 해보면 좋은 것" items={year.goodActions} tone="good" />
-        <ActionList title="조심하면 좋은 것" items={year.cautions} tone="caution" />
+        <ActionList title="이 해에 해보면 좋은 것" items={year.goodActions.slice(0, 2)} tone="good" />
+        <ActionList title="조심하면 좋은 것" items={year.cautions.slice(0, 2)} tone="caution" />
       </div>
     </section>
   );
@@ -398,7 +391,6 @@ function YearDetail({ year }: { year: YearFortune }) {
 function MeScreen({ report, onEdit }: { report: FortuneReport; onEdit: () => void }) {
   const [showExpert, setShowExpert] = useState(false);
   const needed = report.interpretation.supportiveElements[0];
-  const careful = report.interpretation.challengingElements[0];
   const dominant = dominantElement(report);
 
   return (
@@ -440,24 +432,6 @@ function MeScreen({ report, onEdit }: { report: FortuneReport; onEdit: () => voi
             items={needed.actions}
           />
         )}
-        {careful && (
-          <ElementAdviceCard
-            title="속도를 조절하면 좋은 기운"
-            badge={`${careful.label} ${careful.hanja}`}
-            body={careful.cautionReason ?? careful.reason}
-            items={careful.caution ? [careful.caution] : []}
-            quiet
-          />
-        )}
-      </section>
-
-      <section className="rounded-[24px] bg-white p-5 shadow-sm">
-        <SectionLabel icon={<UserRound size={17} />} title="내 성향 요약" />
-        <div className="mt-4 grid gap-4">
-          <PlainInsight title="강점" text={report.interpretation.strength} />
-          <PlainInsight title="주의할 점" text={report.interpretation.caution} />
-          <PlainInsight title="추천 행동" text={report.interpretation.recommendedAction} />
-        </div>
       </section>
 
       <button className="flex w-full items-center justify-between rounded-[24px] bg-[#edf4ee] p-5 text-left" onClick={() => setShowExpert(!showExpert)}>
@@ -667,16 +641,14 @@ function ElementAdviceCard({
   badge,
   body,
   items,
-  quiet = false,
 }: {
   title: string;
   badge: string;
   body: string;
   items: string[];
-  quiet?: boolean;
 }) {
   return (
-    <section className={`rounded-[24px] p-5 shadow-sm ${quiet ? 'bg-[#f4f1ea]' : 'bg-white'}`}>
+    <section className="rounded-[24px] bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-black">{title}</h2>
         <span className="rounded-full bg-[#eef4ff] px-3 py-2 text-xs font-black text-[#2563eb]">{badge}</span>
@@ -692,15 +664,6 @@ function ElementAdviceCard({
         </div>
       )}
     </section>
-  );
-}
-
-function PlainInsight({ title, text }: { title: string; text: string }) {
-  return (
-    <div>
-      <p className="text-sm font-black text-[#2563eb]">{title}</p>
-      <p className="mt-2 text-base leading-7 text-slate-700">{text}</p>
-    </div>
   );
 }
 
