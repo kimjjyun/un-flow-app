@@ -258,6 +258,7 @@ function HomeScreen({
   const needed = report.interpretation.supportiveElements[0];
   const nextChange = report.lifeFlow.find((year) => year.year > activeYear.year && isChangeType(year.type));
   const dayMaster = report.core.dayMaster.label;
+  const dominant = dominantElement(report);
 
   return (
     <section className="space-y-5 animate-enter">
@@ -314,8 +315,8 @@ function HomeScreen({
       <section className="grid gap-3 pb-2">
         <QuestionCard
           label="자주 보는 질문"
-          title={`${dayMaster}의 성향`}
-          body={userFriendlyPersonality(report)}
+          title={`${dayMaster} · ${dominant.label} 기운 중심`}
+          body={`${dominant.label} ${dominant.hanja}가 가장 크게 보여요. ${userFriendlyPersonality(report)}`}
           onClick={() => onPickTab('me')}
         />
         <QuestionCard
@@ -398,6 +399,7 @@ function MeScreen({ report, onEdit }: { report: FortuneReport; onEdit: () => voi
   const [showExpert, setShowExpert] = useState(false);
   const needed = report.interpretation.supportiveElements[0];
   const careful = report.interpretation.challengingElements[0];
+  const dominant = dominantElement(report);
 
   return (
     <section className="space-y-5 animate-enter">
@@ -423,6 +425,10 @@ function MeScreen({ report, onEdit }: { report: FortuneReport; onEdit: () => voi
             <ElementBar key={element.key} element={element} />
           ))}
         </div>
+        <p className="mt-5 rounded-[20px] bg-[#f5f7fb] p-4 text-sm font-bold leading-6 text-slate-600">
+          지금 분포에서는 {dominant.label} {dominant.hanja}가 가장 크게 보여요. 일간은 나를 대표하는 기준이고,
+          오행 분포는 전체 기운의 비율이라 서로 다르게 보일 수 있어요.
+        </p>
       </section>
 
       <section className="grid gap-3">
@@ -736,6 +742,10 @@ function yearsFromNow(years: YearFortune[]) {
 
 function topMetric(metrics: FortuneMetric[]) {
   return metrics.reduce((best, metric) => (metric.value > best.value ? metric : best), metrics[0]);
+}
+
+function dominantElement(report: FortuneReport) {
+  return report.core.elements.reduce((top, element) => (element.value > top.value ? element : top), report.core.elements[0]);
 }
 
 function relationshipCue(report: FortuneReport) {
