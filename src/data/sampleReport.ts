@@ -1,10 +1,10 @@
 import { FortuneReport, UserProfile } from '../types/saju';
 
 export const defaultProfile: UserProfile = {
-  name: '김OO',
+  name: '',
   gender: 'none',
   calendarType: 'solar',
-  birthDate: '1992-05-16',
+  birthDate: '',
   birthTimeMode: 'unknown',
 };
 

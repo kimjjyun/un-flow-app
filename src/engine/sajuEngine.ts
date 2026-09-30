@@ -7,7 +7,7 @@ export interface SajuCalculationEngine {
 
 class ApiSajuEngine implements SajuCalculationEngine {
   async calculate(profile: UserProfile): Promise<FortuneReport> {
-    await new Promise((resolve) => window.setTimeout(resolve, 2300));
+    await new Promise((resolve) => window.setTimeout(resolve, 900));
 
     try {
       const response = await fetch('/api/saju/calculate', {
