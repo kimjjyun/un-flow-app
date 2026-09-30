@@ -2,6 +2,7 @@ import {
   ArrowRight,
   BarChart3,
   CalendarDays,
+  CheckCircle2,
   ChevronLeft,
   CircleUserRound,
   Compass,
@@ -9,6 +10,7 @@ import {
   Home,
   LineChart,
   Sparkles,
+  Target,
   UserRound,
 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
@@ -53,8 +55,8 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f4f1] text-ink">
-      <div className="mx-auto min-h-screen w-full max-w-md bg-[#f7f7f3] md:my-6 md:min-h-[880px] md:overflow-hidden md:rounded-[28px] md:shadow-soft">
+    <div className="min-h-screen bg-[#edf1f5] text-ink">
+      <div className="mx-auto min-h-screen w-full max-w-md bg-[#f5f7fa] md:my-6 md:min-h-[880px] md:overflow-hidden md:rounded-[30px] md:shadow-soft">
         {step === 'form' && (
           <ProfileForm
             profile={profile}
@@ -105,12 +107,12 @@ function ProfileForm({
         ) : (
           <span className="h-10 w-10" />
         )}
-        <span className="text-sm font-black text-forest">운의 흐름</span>
+        <span className="text-sm font-black text-[#101828]">운의 흐름</span>
         <span className="h-10 w-10" />
       </header>
 
       <section className="animate-enter">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-black text-leaf shadow-sm">
+        <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-black text-[#2563eb] shadow-sm">
           <Sparkles size={14} />
           1분이면 볼 수 있어요
         </span>
@@ -213,17 +215,17 @@ function Analyzing({ message }: { message: string }) {
     <main className="flex min-h-screen flex-col justify-center px-7 md:min-h-[880px]">
       <div className="rounded-[24px] bg-white p-6 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#eef4ee] text-forest">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#eef4ff] text-[#2563eb]">
             <BarChart3 size={22} />
           </div>
           <div>
-            <p className="text-xs font-black text-leaf">분석 중</p>
+            <p className="text-xs font-black text-[#2563eb]">분석 중</p>
             <h1 className="text-xl font-black">결과를 정리하고 있어요</h1>
           </div>
         </div>
         <div className="mt-8 space-y-3">
-          <span className="analysis-line block h-3 w-4/5 rounded-full bg-forest" />
-          <span className="analysis-line analysis-line-delay block h-3 w-full rounded-full bg-leaf/45" />
+          <span className="analysis-line block h-3 w-4/5 rounded-full bg-[#101828]" />
+          <span className="analysis-line analysis-line-delay block h-3 w-full rounded-full bg-[#2563eb]/45" />
           <span className="analysis-line block h-3 w-3/5 rounded-full bg-warm/80" />
         </div>
         <p className="mt-8 min-h-7 text-base font-bold text-slate-600">{message}</p>
@@ -259,21 +261,27 @@ function HomeScreen({
 
   return (
     <section className="space-y-5 animate-enter">
-      <TopBar title="오늘의 운세" subtitle={formatToday()} onEdit={onEdit} />
+      <TopBar title="운세 체크인" subtitle={formatToday()} onEdit={onEdit} />
 
-      <section className="rounded-[28px] bg-forest p-6 text-white shadow-[0_18px_40px_rgba(24,63,54,0.22)]">
+      <section className="overflow-hidden rounded-[30px] bg-[#101828] p-5 text-white shadow-[0_18px_44px_rgba(16,24,40,0.24)]">
+        <div className="flex items-center justify-between">
+          <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-black text-white/70">Mini App</span>
+          <span className="text-xs font-black text-[#9ee6b7]">오늘 완료 전</span>
+        </div>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-black text-white/60">{report.user.name || '나'}님의 오늘</p>
-            <h1 className="mt-3 text-[42px] font-black leading-none">{mainMetric.value}</h1>
-            <p className="mt-2 text-sm font-bold text-white/60">오늘의 체감 점수</p>
+            <p className="mt-8 text-sm font-black text-white/55">{report.user.name || '나'}님의 오늘 운세</p>
+            <h1 className="mt-2 text-[52px] font-black leading-none tracking-[-0.02em]">{mainMetric.value}</h1>
+            <p className="mt-2 text-sm font-bold text-white/55">가장 강한 흐름 · {mainMetric.label}</p>
           </div>
-          <span className="rounded-full bg-white/12 px-3 py-2 text-xs font-black">{mainMetric.label}</span>
+          <div className="mt-8 grid h-16 w-16 place-items-center rounded-[22px] bg-[#d7ff63] text-[#101828]">
+            <Sparkles size={26} />
+          </div>
         </div>
-        <p className="mt-6 text-[22px] font-black leading-snug">{report.today.summary}</p>
-        <button className="mt-6 flex w-full items-center justify-between rounded-2xl bg-white px-4 py-4 text-left text-forest" onClick={() => onPickTab('flow')}>
+        <p className="mt-6 text-[23px] font-black leading-snug tracking-[-0.01em]">{report.today.summary}</p>
+        <button className="mt-6 flex w-full items-center justify-between rounded-[22px] bg-white px-4 py-4 text-left text-[#101828]" onClick={() => onPickTab('flow')}>
           <span>
-            <span className="block text-xs font-black text-leaf">올해 흐름</span>
+            <span className="block text-xs font-black text-slate-500">올해 흐름 바로 보기</span>
             <strong className="mt-1 block text-base">
               {activeYear.year}년 · {shortFlow(activeYear.type)}
             </strong>
@@ -288,33 +296,30 @@ function HomeScreen({
         ))}
       </section>
 
-      <section className="rounded-[24px] bg-white p-5 shadow-sm">
-        <SectionLabel icon={<Compass size={17} />} title="오늘 할 일" />
-        <p className="mt-4 text-xl font-black leading-snug">{report.today.advice}</p>
-        <div className="mt-5 grid gap-2">
-          <CompactLine label="집중" value={report.today.focus} />
-          <CompactLine label="피하기" value={report.today.avoid} />
-          <CompactLine label="관계" value={relationshipCue(report)} />
+      <section className="rounded-[28px] bg-white p-5 shadow-sm">
+        <SectionLabel icon={<CheckCircle2 size={17} />} title="오늘 체크리스트" />
+        <div className="mt-5 grid gap-3">
+          <MissionLine index="1" title="오늘 할 일" value={report.today.advice} active />
+          <MissionLine index="2" title="집중할 것" value={report.today.focus} />
+          <MissionLine index="3" title="거리둘 것" value={report.today.avoid} />
         </div>
       </section>
 
-      <section className="grid gap-3">
+      <section className="rounded-[28px] bg-[#eaf0ff] p-5">
+        <SectionLabel icon={<Target size={17} />} title="나한테 맞는 방향" />
+        <p className="mt-4 text-xl font-black leading-snug">{needed ? needed.need : relationshipCue(report)}</p>
+        <p className="mt-3 text-sm leading-6 text-slate-600">{needed ? needed.reason : '오늘은 관계의 속도를 내기보다 편한 접점을 만드는 쪽이 잘 맞아요.'}</p>
+      </section>
+
+      <section className="grid gap-3 pb-2">
         <QuestionCard
-          label="나는 어떤 사주야?"
+          label="자주 보는 질문"
           title={`${dayMaster}의 성향`}
           body={userFriendlyPersonality(report)}
           onClick={() => onPickTab('me')}
         />
-        {needed && (
-          <QuestionCard
-            label="나에게 필요한 기운"
-            title={`${needed.label} ${needed.hanja}`}
-            body={needed.need}
-            onClick={() => onPickTab('me')}
-          />
-        )}
         <QuestionCard
-          label="다가오는 변화"
+          label="다음에 뭐가 바뀌어?"
           title={nextChange ? `${nextChange.year}년 ${shortFlow(nextChange.type)}` : `${activeYear.year}년의 흐름`}
           body={nextChange ? nextChange.title : activeYear.title}
           onClick={() => onPickTab('flow')}
@@ -337,18 +342,18 @@ function FlowScreen({
 
   return (
     <section className="space-y-5 animate-enter">
-      <TopBar title="인생 흐름" subtitle="올해부터 보기" />
+      <TopBar title="흐름 캘린더" subtitle="올해부터 보기" />
 
-      <section className="rounded-[28px] bg-white p-5 shadow-sm">
+      <section className="rounded-[30px] bg-[#dcfce7] p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-black text-leaf">선택한 해</p>
-            <h1 className="mt-2 text-[38px] font-black leading-none">{selectedYear.year}</h1>
-            <p className="mt-3 text-xl font-black text-forest">{flowLabel(selectedYear.type)}</p>
+            <p className="text-sm font-black text-[#15803d]">선택한 해</p>
+            <h1 className="mt-2 text-[42px] font-black leading-none tracking-[-0.02em]">{selectedYear.year}</h1>
+            <p className="mt-3 text-xl font-black text-[#14532d]">{flowLabel(selectedYear.type)}</p>
           </div>
           <ScoreRing value={selectedYear.score} />
         </div>
-        <p className="mt-5 text-base leading-7 text-slate-600">{selectedYear.summary}</p>
+        <p className="mt-5 text-base font-bold leading-7 text-[#14532d]/80">{selectedYear.summary}</p>
       </section>
 
       <section>
@@ -367,11 +372,11 @@ function FlowScreen({
 
 function YearDetail({ year }: { year: YearFortune }) {
   return (
-    <section className="rounded-[24px] bg-white p-5 shadow-sm">
-      <SectionLabel icon={<Sparkles size={17} />} title={`${year.year}년에 궁금한 것`} />
+    <section className="rounded-[28px] bg-white p-5 shadow-sm">
+      <SectionLabel icon={<Sparkles size={17} />} title={`${year.year}년 요약`} />
       <div className="mt-4 flex flex-wrap gap-2">
         {year.keywords.slice(0, 3).map((keyword) => (
-          <span key={keyword} className="rounded-full bg-[#edf4ee] px-3 py-2 text-xs font-black text-forest">
+          <span key={keyword} className="rounded-full bg-[#eef4ff] px-3 py-2 text-xs font-black text-[#2563eb]">
             {keyword}
           </span>
         ))}
@@ -396,14 +401,14 @@ function MeScreen({ report, onEdit }: { report: FortuneReport; onEdit: () => voi
 
   return (
     <section className="space-y-5 animate-enter">
-      <TopBar title="사주 분석" subtitle="나의 기본값" onEdit={onEdit} />
+      <TopBar title="내 사주 카드" subtitle="나의 기본값" onEdit={onEdit} />
 
-      <section className="rounded-[28px] bg-white p-5 shadow-sm">
+      <section className="rounded-[30px] bg-[#fff7ed] p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-black text-leaf">나의 사주</p>
-            <h1 className="mt-2 text-[38px] font-black leading-tight">{report.core.dayMaster.label}</h1>
-            <p className="mt-3 text-base leading-7 text-slate-600">{userFriendlyPersonality(report)}</p>
+            <p className="text-sm font-black text-[#c2410c]">나의 사주</p>
+            <h1 className="mt-2 text-[40px] font-black leading-tight tracking-[-0.02em]">{report.core.dayMaster.label}</h1>
+            <p className="mt-3 text-base font-bold leading-7 text-[#7c2d12]/80">{userFriendlyPersonality(report)}</p>
           </div>
           <button className="icon-btn shrink-0" onClick={onEdit} aria-label="출생정보 수정">
             <Edit3 size={18} />
@@ -411,7 +416,7 @@ function MeScreen({ report, onEdit }: { report: FortuneReport; onEdit: () => voi
         </div>
       </section>
 
-      <section className="rounded-[24px] bg-white p-5 shadow-sm">
+      <section className="rounded-[28px] bg-white p-5 shadow-sm">
         <SectionLabel icon={<BarChart3 size={17} />} title="오행 분포" />
         <div className="mt-5 space-y-4">
           {report.core.elements.map((element) => (
@@ -465,7 +470,7 @@ function ExpertSection({ report }: { report: FortuneReport }) {
   return (
     <section className="space-y-3 animate-expand">
       <div className="rounded-[24px] bg-white p-5 shadow-sm">
-        <p className="text-xs font-black text-leaf">사주팔자</p>
+        <p className="text-xs font-black text-[#2563eb]">사주팔자</p>
         <div className="mt-4 grid grid-cols-4 gap-2">
           {Object.entries(report.core.pillars).map(([key, value]) => (
             <div key={key} className="rounded-2xl bg-[#f2f3ef] p-3 text-center">
@@ -484,8 +489,8 @@ function TopBar({ title, subtitle, onEdit }: { title: string; subtitle: string; 
   return (
     <header className="flex items-center justify-between pt-1">
       <div>
-        <p className="text-xs font-black text-leaf">{subtitle}</p>
-        <h1 className="mt-1 text-[30px] font-black leading-tight">{title}</h1>
+        <p className="text-xs font-black text-[#64748b]">{subtitle}</p>
+        <h1 className="mt-1 text-[31px] font-black leading-tight tracking-[-0.02em]">{title}</h1>
       </div>
       {onEdit && (
         <button className="icon-btn" onClick={onEdit} aria-label="출생정보 수정">
@@ -519,7 +524,7 @@ function Segmented({
             type="button"
             onClick={() => onChange(key)}
             className={`min-h-11 flex-1 rounded-xl px-3 text-sm font-bold transition active:scale-[0.98] ${
-              value === key ? 'bg-forest text-white shadow-sm' : 'text-slate-500'
+              value === key ? 'bg-[#101828] text-white shadow-sm' : 'text-slate-500'
             }`}
           >
             {text}
@@ -538,12 +543,12 @@ function BottomNav({ tab, setTab }: { tab: Tab; setTab: (tab: Tab) => void }) {
   ] as const;
 
   return (
-    <nav className="fixed bottom-5 left-1/2 z-20 grid w-[calc(100%-44px)] max-w-sm -translate-x-1/2 grid-cols-3 rounded-[24px] bg-white/95 p-2 shadow-[0_14px_44px_rgba(23,32,51,0.16)] backdrop-blur md:bottom-10">
+    <nav className="fixed bottom-5 left-1/2 z-20 grid w-[calc(100%-44px)] max-w-sm -translate-x-1/2 grid-cols-3 rounded-[26px] bg-white/95 p-2 shadow-[0_16px_46px_rgba(15,23,42,0.18)] backdrop-blur md:bottom-10">
       {items.map(([key, label, Icon]) => (
         <button
           key={key}
           className={`flex min-h-12 items-center justify-center gap-2 rounded-[18px] text-sm font-black transition active:scale-[0.98] ${
-            tab === key ? 'bg-forest text-white' : 'text-slate-400'
+            tab === key ? 'bg-[#101828] text-white' : 'text-slate-400'
           }`}
           onClick={() => setTab(key)}
         >
@@ -558,7 +563,7 @@ function BottomNav({ tab, setTab }: { tab: Tab; setTab: (tab: Tab) => void }) {
 function SectionLabel({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#edf4ee] text-forest">{icon}</span>
+      <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#eef4ff] text-[#2563eb]">{icon}</span>
       <h2 className="text-xl font-black">{title}</h2>
     </div>
   );
@@ -566,27 +571,32 @@ function SectionLabel({ icon, title }: { icon: React.ReactNode; title: string })
 
 function MetricMini({ metric }: { metric: FortuneMetric }) {
   return (
-    <div className="rounded-2xl bg-white p-3 shadow-sm">
+    <div className="rounded-[22px] bg-white p-3 shadow-sm">
       <span className="block text-xs font-black text-slate-500">{metric.label}</span>
-      <strong className="mt-2 block text-2xl font-black text-forest">{metric.value}</strong>
+      <strong className="mt-2 block text-2xl font-black text-[#2563eb]">{metric.value}</strong>
     </div>
   );
 }
 
-function CompactLine({ label, value }: { label: string; value: string }) {
+function MissionLine({ index, title, value, active = false }: { index: string; title: string; value: string; active?: boolean }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl bg-[#f3f4f1] px-4 py-3">
-      <span className="shrink-0 text-sm font-black text-slate-500">{label}</span>
-      <strong className="text-right text-sm leading-6">{value}</strong>
+    <div className={`flex gap-3 rounded-[22px] p-4 ${active ? 'bg-[#101828] text-white' : 'bg-[#f5f7fb]'}`}>
+      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${active ? 'bg-[#d7ff63] text-[#101828]' : 'bg-white text-slate-500'}`}>
+        {index}
+      </span>
+      <span>
+        <span className={`block text-xs font-black ${active ? 'text-white/55' : 'text-slate-500'}`}>{title}</span>
+        <strong className="mt-1 block text-sm leading-6">{value}</strong>
+      </span>
     </div>
   );
 }
 
 function QuestionCard({ label, title, body, onClick }: { label: string; title: string; body: string; onClick: () => void }) {
   return (
-    <button className="flex w-full items-center justify-between gap-4 rounded-[24px] bg-white p-5 text-left shadow-sm active:scale-[0.99]" onClick={onClick}>
+    <button className="flex w-full items-center justify-between gap-4 rounded-[26px] bg-white p-5 text-left shadow-sm active:scale-[0.99]" onClick={onClick}>
       <span>
-        <span className="block text-xs font-black text-leaf">{label}</span>
+        <span className="block text-xs font-black text-[#2563eb]">{label}</span>
         <strong className="mt-2 block text-lg leading-snug">{title}</strong>
         <span className="mt-2 line-clamp-2 block text-sm leading-6 text-slate-600">{body}</span>
       </span>
@@ -599,18 +609,18 @@ function YearRow({ year, active, onClick }: { year: YearFortune; active: boolean
   return (
     <button
       className={`grid w-full grid-cols-[62px_1fr_auto] items-center gap-3 rounded-[22px] p-4 text-left shadow-sm transition active:scale-[0.99] ${
-        active ? 'bg-forest text-white' : 'bg-white'
+        active ? 'bg-[#101828] text-white' : 'bg-white'
       }`}
       onClick={onClick}
     >
-      <strong className={`text-xl font-black ${active ? 'text-white' : 'text-forest'}`}>{year.year}</strong>
+      <strong className={`text-xl font-black ${active ? 'text-white' : 'text-[#2563eb]'}`}>{year.year}</strong>
       <span>
         <span className="block text-base font-black">{year.title}</span>
         <span className={`mt-1 block text-xs font-bold ${active ? 'text-white/55' : 'text-slate-500'}`}>
           {year.keywords.slice(0, 3).join(' · ')}
         </span>
       </span>
-      <span className={`rounded-full px-3 py-2 text-[11px] font-black ${active ? 'bg-white/15 text-white' : 'bg-[#edf4ee] text-forest'}`}>
+      <span className={`rounded-full px-3 py-2 text-[11px] font-black ${active ? 'bg-white/15 text-white' : 'bg-[#eef4ff] text-[#2563eb]'}`}>
         {shortFlow(year.type)}
       </span>
     </button>
@@ -621,10 +631,10 @@ function ScoreRing({ value }: { value: number }) {
   return (
     <div
       className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-[#edf4ee]"
-      style={{ background: `conic-gradient(#183f36 ${value * 3.6}deg, #edf4ee 0deg)` }}
+      style={{ background: `conic-gradient(#2563eb ${value * 3.6}deg, rgba(255,255,255,0.65) 0deg)` }}
     >
       <div className="grid h-14 w-14 place-items-center rounded-full bg-white">
-        <strong className="text-lg font-black text-forest">{value}</strong>
+        <strong className="text-lg font-black text-[#2563eb]">{value}</strong>
       </div>
     </div>
   );
@@ -663,7 +673,7 @@ function ElementAdviceCard({
     <section className={`rounded-[24px] p-5 shadow-sm ${quiet ? 'bg-[#f4f1ea]' : 'bg-white'}`}>
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-black">{title}</h2>
-        <span className="rounded-full bg-[#edf4ee] px-3 py-2 text-xs font-black text-forest">{badge}</span>
+        <span className="rounded-full bg-[#eef4ff] px-3 py-2 text-xs font-black text-[#2563eb]">{badge}</span>
       </div>
       <p className="mt-3 text-sm leading-6 text-slate-600">{body}</p>
       {items.length > 0 && (
@@ -682,7 +692,7 @@ function ElementAdviceCard({
 function PlainInsight({ title, text }: { title: string; text: string }) {
   return (
     <div>
-      <p className="text-sm font-black text-leaf">{title}</p>
+      <p className="text-sm font-black text-[#2563eb]">{title}</p>
       <p className="mt-2 text-base leading-7 text-slate-700">{text}</p>
     </div>
   );
