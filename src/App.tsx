@@ -8,6 +8,7 @@ import {
   Edit3,
   Home,
   LineChart,
+  Share2,
   Sparkles,
   Target,
 } from 'lucide-react';
@@ -252,11 +253,34 @@ function HomeScreen({
   onPickTab: (tab: Tab) => void;
   onEdit: () => void;
 }) {
+  const [shareMessage, setShareMessage] = useState('');
   const mainMetric = topMetric(report.today.metrics);
   const needed = report.interpretation.supportiveElements[0];
   const nextChange = report.lifeFlow.find((year) => year.year > activeYear.year && isChangeType(year.type));
   const dayMaster = report.core.dayMaster.label;
   const dominant = dominantElement(report);
+
+  async function shareToday() {
+    const url = 'https://un-flow-app-kimjjyun8.web.app';
+    const text = `${report.user.name || '나'}님의 오늘 운세는 ${mainMetric.value}점, ${mainMetric.label} 흐름이 강해요. 나는 ${dayMaster}, ${dominant.label} 기운 중심으로 나왔어요.`;
+    const shareData = {
+      title: '운의 흐름',
+      text,
+      url,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareMessage('공유창을 열었어요');
+        return;
+      }
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setShareMessage('공유 문구를 복사했어요');
+    } catch {
+      setShareMessage('공유를 잠시 취소했어요');
+    }
+  }
 
   return (
     <section className="space-y-5 animate-enter">
@@ -288,6 +312,17 @@ function HomeScreen({
           <ArrowRight size={18} />
         </button>
       </section>
+
+      <button className="flex w-full items-center justify-between rounded-[24px] bg-white px-5 py-4 text-left shadow-sm active:scale-[0.99]" onClick={shareToday}>
+        <span>
+          <span className="block text-xs font-black text-[#2563eb]">친구에게 보내기</span>
+          <strong className="mt-1 block text-base">내 오늘 운세 카드 공유하기</strong>
+          {shareMessage && <span className="mt-1 block text-xs font-bold text-slate-500">{shareMessage}</span>}
+        </span>
+        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#eef4ff] text-[#2563eb]">
+          <Share2 size={18} />
+        </span>
+      </button>
 
       <section className="rounded-[28px] bg-white p-5 shadow-sm">
         <SectionLabel icon={<CheckCircle2 size={17} />} title="오늘은 이것만" />
