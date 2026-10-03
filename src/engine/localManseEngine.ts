@@ -319,7 +319,7 @@ function buildChallengingElements(elements: ReturnType<typeof buildElementDistri
 }
 
 function buildLifeFlow(seed: number, birthYear: number) {
-  const currentYear = 2026;
+  const currentYear = new Date().getFullYear();
   const flowTypes = ['기회의 시기', '성장의 시기', '변화의 시기', '정리의 시기', '주의가 필요한 시기'] as const;
   const keywords = [
     ['기회', '확장', '변화'],

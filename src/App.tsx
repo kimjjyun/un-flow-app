@@ -6,7 +6,9 @@ import {
   ChevronLeft,
   CircleUserRound,
   Edit3,
-  Eye,
+  Heart,
+  Download,
+  ChevronRight,
   Home,
   LineChart,
   Share2,
@@ -16,6 +18,7 @@ import {
 import { FormEvent, useMemo, useState } from 'react';
 import { defaultProfile } from './data/sampleReport';
 import { sajuEngine } from './engine/sajuEngine';
+import { downloadFortuneCard } from './lib/shareCard';
 import { BirthTimeMode, FiveElement, FlowType, FortuneMetric, FortuneReport, UserProfile, YearFortune } from './types/saju';
 
 type Step = 'intro' | 'form' | 'analyzing' | 'app';
@@ -54,24 +57,30 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [selectedYear, setSelectedYear] = useState<YearFortune | null>(null);
   const [messageIndex, setMessageIndex] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const activeYear = selectedYear ?? pickCurrentYear(report) ?? null;
 
   async function submitProfile(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
 
-    if (!profile.birthDate) {
+    const birth = new Date(`${profile.birthDate}T00:00:00`);
+    const [year, month, day] = profile.birthDate.split('-').map(Number);
+    if (!profile.birthDate || !Number.isFinite(birth.getTime()) || birth.getFullYear() !== year || birth.getMonth() + 1 !== month || birth.getDate() !== day || year < 1900 || birth > new Date()) {
+      setErrorMessage('1900년부터 오늘 사이의 올바른 생일을 입력해주세요.');
       setStep('form');
       return;
     }
 
     setStep('analyzing');
+    setErrorMessage('');
     setMessageIndex(0);
 
     const ticker = window.setInterval(() => {
       setMessageIndex((value) => (value + 1) % analysisMessages.length);
     }, 620);
 
+    try {
     const result = await sajuEngine.calculate({
       ...profile,
       name: profile.name.trim() || '나',
@@ -83,11 +92,18 @@ export default function App() {
     setSharedPreview(null);
     setTab('home');
     setStep('app');
+    window.scrollTo(0, 0);
+    } catch {
+      setErrorMessage('카드를 만들지 못했어요. 생일을 확인하고 다시 시도해주세요.');
+      setStep('form');
+    } finally {
+      window.clearInterval(ticker);
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#e9edf3] text-ink">
-      <div className="mx-auto min-h-screen w-full max-w-md bg-[#f7f8fb] md:my-6 md:min-h-[880px] md:overflow-hidden md:rounded-[30px] md:shadow-soft">
+      <div className="app-frame mx-auto min-h-screen w-full max-w-md bg-[#f7f8fb] md:my-6 md:min-h-[880px] md:overflow-hidden md:rounded-[30px] md:shadow-soft">
         {step === 'intro' && (
           <IntroScreen
             sharedPreview={sharedPreview}
@@ -99,12 +115,15 @@ export default function App() {
           />
         )}
         {step === 'form' && (
+          <>
+          {errorMessage && <p role="alert" className="px-6 pt-4 text-sm text-red-600">{errorMessage}</p>}
           <ProfileForm
             profile={profile}
             setProfile={setProfile}
             onSubmit={submitProfile}
             onBack={() => (report ? setStep('app') : setStep('intro'))}
           />
+          </>
         )}
         {step === 'analyzing' && <Analyzing message={analysisMessages[messageIndex]} />}
         {step === 'app' && report && activeYear && (
@@ -132,13 +151,20 @@ function IntroScreen({
   onStart: () => void;
   onClearShare: () => void;
 }) {
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const topics = [
+    { label: '오늘의 운세', icon: '✦', title: '작은 시작이\n좋은 흐름을 만들어요', detail: '미뤄둔 일 하나, 오늘 가볍게 시작해봐요.', color: 'lime' },
+    { label: '연애와 관계', icon: '♡', title: '먼저 건넨 한마디가\n하루를 바꿀지도', detail: '생각나는 사람에게 짧은 안부를 보내봐요.', color: 'pink' },
+    { label: '나의 성향', icon: '◈', title: '나도 몰랐던\n내 안의 좋은 점', detail: '내 기운을 알고, 나에게 맞는 속도를 찾아요.', color: 'purple' },
+  ];
+  const topic = topics[previewIndex];
   const preview = sharedPreview ?? demoPreview;
   const isShared = Boolean(sharedPreview);
 
   return (
-    <main className="min-h-screen px-5 pb-8 pt-5 md:min-h-[880px]">
+    <main className="landing min-h-screen px-6 pb-8 pt-6 md:min-h-[880px]">
       <header className="flex items-center justify-between">
-        <span className="text-sm font-black text-[#101828]">운의 흐름</span>
+        <span className="brand"><span className="brand-mark">✳</span> 운의 흐름<span className="brand-dot" /></span>
         {isShared && (
           <button className="rounded-full bg-white px-3 py-2 text-xs font-black text-slate-500 shadow-sm" onClick={onClearShare}>
             처음 화면
@@ -146,65 +172,50 @@ function IntroScreen({
         )}
       </header>
 
-      <section className="mt-7 animate-enter">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-black text-[#2563eb] shadow-sm">
-          <Sparkles size={14} />
-          {isShared ? '친구가 보낸 운세 카드' : '공유하고 싶은 오늘의 운세'}
-        </div>
-        <h1 className="mt-5 text-[34px] font-black leading-tight tracking-[-0.01em]">
-          {isShared ? `${preview.name}님의 흐름을` : '생년월일만 넣으면'}
+      <section className="landing-heading animate-enter">
+        <p className="eyebrow">{isShared ? 'A LITTLE LUCK, FROM YOUR FRIEND' : 'A LITTLE LUCK, EVERY DAY'}</p>
+        <h1>
+          {isShared ? `${preview.name}님의 하루에` : '오늘, 나에게 어떤'}
           <br />
-          {isShared ? '먼저 살짝 볼까요?' : '오늘 쓸 말이 나와요'}
+          {isShared ? '찾아온 작은 행운' : '행운이 올까요?'}
         </h1>
-        <p className="mt-4 text-base leading-7 text-slate-600">
-          긴 풀이보다 친구에게 보여주기 좋은 카드, 오늘 할 일, 올해 흐름을 먼저 보여줘요.
+        <p className="landing-description">
+          {isShared ? '친구가 나눠준 카드예요. 당신의 흐름도 만나보세요.' : '나를 조금 더 알고, 하루를 조금 더 가볍게.'}
         </p>
       </section>
-
-      <section className="mt-8 overflow-hidden rounded-[30px] bg-[#101828] p-5 text-white shadow-[0_18px_44px_rgba(16,24,40,0.24)]">
-        <div className="flex items-center justify-between">
-          <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-black text-white/70">
-            {isShared ? '친구 카드' : '미리보기'}
-          </span>
-          <span className="text-xs font-black text-[#d7ff63]">오늘 바로 보기</span>
-        </div>
-        <div className="mt-8 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-black text-white/55">{preview.name}님의 강한 흐름</p>
-            <h2 className="mt-2 text-[56px] font-black leading-none tracking-[-0.02em]">{preview.score}</h2>
-            <p className="mt-2 text-sm font-bold text-white/55">{preview.metric} 운이 눈에 띄어요</p>
-          </div>
-          <div className="grid h-16 w-16 place-items-center rounded-[22px] bg-[#d7ff63] text-[#101828]">
-            <Eye size={26} />
-          </div>
-        </div>
-        <p className="mt-6 text-[23px] font-black leading-snug tracking-[-0.01em]">{preview.summary}</p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-black">{preview.dayMaster} 타입</span>
-          <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-black">{preview.element} 기운 중심</span>
-        </div>
+      {!isShared && <div className="topic-tabs" aria-label="카드 미리보기 주제">
+        {topics.map((item, index) => <button key={item.label} aria-pressed={previewIndex === index} onClick={() => setPreviewIndex(index)}><span>{item.icon}</span>{item.label}</button>)}
+      </div>}
+      <section className={`luck-preview ${isShared ? 'lime' : topic.color}`}>
+        <div className="preview-top"><span><span className="tiny-star">✦</span> {isShared ? `${preview.name}님의 카드` : topic.label}</span><span>{isShared ? `${preview.score}점 · 전체 흐름` : '미리보기'}</span></div>
+        <div className="mascot-stage"><span className="orbit orbit-one" /><span className="orbit orbit-two" /><span className="floating-star star-one">✧</span><span className="floating-star star-two">✦</span><LuckMascot mood={previewIndex} /><span className="floating-label">{isShared ? `${preview.metric} 흐름 ↑` : ['좋은 예감!', '마음이 통하는 날', '내 속도로 가요'][previewIndex]}</span></div>
+        <h2>{isShared ? preview.summary : topic.title}</h2>
+        <p>{isShared ? `${preview.dayMaster} 타입 · ${preview.element} 기운 중심` : topic.detail}</p>
+        <div className="preview-footer"><span>운의 흐름</span><span>YOUR DAILY LUCK ↗</span></div>
       </section>
-
-      <section className="mt-5 grid grid-cols-3 gap-2">
-        <IntroPoint title="빠르게" body="필수 입력 1개" />
-        <IntroPoint title="가볍게" body="한 줄 카드" />
-        <IntroPoint title="같이" body="친구 공유" />
-      </section>
-
-      <button className="primary-btn mt-6 w-full" onClick={onStart}>
+      <div className="landing-benefits"><span><CheckCircle2 size={14} /> 가입 없이</span><span><CheckCircle2 size={14} /> 생년월일 하나로</span><span><CheckCircle2 size={14} /> 무료로</span></div>
+      <button className="primary-btn mt-5 w-full" onClick={onStart}>
         {isShared ? '내 카드도 보기' : '내 운세 카드 만들기'}
         <ArrowRight size={18} />
       </button>
+      <p className="landing-note">가볍게 읽고, 좋은 기운은 친구와 나눠요.</p>
+      <div className="discover-heading"><h2>내 하루를 위한 작은 힌트</h2><span>3가지 이야기</span></div>
+      <div className="discovery-grid">{topics.map((item,index) => <button key={item.label} onClick={() => {setPreviewIndex(index); window.scrollTo({top: 0, behavior: 'smooth'});}}><span className={`discovery-icon ${item.color}`}>{item.icon}</span><strong>{item.label}</strong><span>{['오늘의 흐름과 행동', '연결을 위한 한마디', '나만의 기운 찾기'][index]}</span><ChevronRight size={15}/></button>)}</div>
+      <p className="entertainment-note">운세는 하루를 돌아보는 재미있는 참고로 즐겨주세요.</p>
     </main>
   );
 }
 
-function IntroPoint({ title, body }: { title: string; body: string }) {
+function LuckMascot({ mood = 0 }: { mood?: number }) {
   return (
-    <div className="rounded-[20px] bg-white p-4 shadow-sm">
-      <strong className="block text-sm font-black">{title}</strong>
-      <span className="mt-1 block text-xs font-bold text-slate-500">{body}</span>
-    </div>
+    <svg className="luck-mascot" viewBox="0 0 220 200" aria-hidden="true">
+      <ellipse cx="112" cy="177" rx="55" ry="9" fill="#182c19" opacity=".08" />
+      <path d="M106 160C63 186 30 147 51 113C8 99 27 50 65 58C68 13 119 16 128 53C166 27 201 62 177 93C216 114 192 156 155 145C158 181 117 191 106 160Z" fill={['#b2ed5a','#ffb8d2','#c3b2ff'][mood]} stroke="#ffffff" strokeWidth="3" />
+      <ellipse cx="92" cy="104" rx="5" ry="8" fill="#243724" /><ellipse cx="127" cy="99" rx="5" ry="8" fill="#243724" />
+      <path d="M104 118Q114 130 126 115" fill="none" stroke="#243724" strokeWidth="4" strokeLinecap="round" />
+      <ellipse cx="76" cy="117" rx="10" ry="6" fill="#fa9c89" opacity=".65" /><ellipse cx="145" cy="111" rx="10" ry="6" fill="#fa9c89" opacity=".65" />
+      <path d="M65 72Q77 49 94 49" fill="none" stroke="white" strokeWidth="6" opacity=".5" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -219,6 +230,7 @@ function ProfileForm({
   onSubmit: (event?: FormEvent<HTMLFormElement>) => void;
   onBack: () => void;
 }) {
+  const [showOptions, setShowOptions] = useState(profile.birthTimeMode !== 'unknown');
   const update = <K extends keyof UserProfile>(key: K, value: UserProfile[K]) => {
     setProfile({ ...profile, [key]: value });
   };
@@ -253,22 +265,31 @@ function ProfileForm({
           <span>생년월일</span>
           <input
             required
-            type="date"
+            type="text"
+            inputMode="numeric"
+            placeholder="예: 1998-06-15"
+            maxLength={10}
+            pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
             value={profile.birthDate}
-            onChange={(event) => update('birthDate', event.target.value)}
+            onChange={(event) => {
+              const digits = event.target.value.replace(/\D/g, '').slice(0, 8);
+              update('birthDate', [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)].filter(Boolean).join('-'));
+            }}
           />
         </label>
 
         <label className="field">
-          <span>닉네임</span>
+          <span>닉네임 <small className="text-slate-400">선택</small></span>
           <input
             value={profile.name}
+            maxLength={20}
             onChange={(event) => update('name', event.target.value)}
             placeholder="없으면 '나'로 표시돼요"
           />
         </label>
 
-        <Segmented
+        <button type="button" className="optional-toggle" onClick={() => setShowOptions(!showOptions)} aria-expanded={showOptions}>출생시간도 알고 있어요 <ChevronRight size={17} className={showOptions ? 'rotate-90' : ''} /></button>
+        {showOptions && <Segmented
           label="출생시간"
           value={profile.birthTimeMode}
           options={[
@@ -277,16 +298,16 @@ function ProfileForm({
             ['approximate', '대략'],
           ]}
           onChange={(value) => update('birthTimeMode', value as BirthTimeMode)}
-        />
+        />}
 
-        {profile.birthTimeMode === 'exact' && (
+        {showOptions && profile.birthTimeMode === 'exact' && (
           <label className="field">
             <span>정확한 시간</span>
-            <input type="time" value={profile.exactTime ?? ''} onChange={(event) => update('exactTime', event.target.value)} />
+            <input required type="time" value={profile.exactTime ?? ''} onChange={(event) => update('exactTime', event.target.value)} />
           </label>
         )}
 
-        {profile.birthTimeMode === 'approximate' && (
+        {showOptions && profile.birthTimeMode === 'approximate' && (
           <Segmented
             label="대략적인 시간대"
             value={profile.approximateTime ?? 'morning'}
@@ -303,7 +324,7 @@ function ProfileForm({
           />
         )}
 
-        <Notice>음력과 성별은 이번 버전에서 숨겼어요. 첫 경험은 빠르게 만들고, 정확도 옵션은 다음 단계에서 여는 편이 더 자연스럽습니다.</Notice>
+        <p className="text-xs leading-6 text-slate-500">양력 생일을 입력해주세요. 출생정보는 공유 카드에 포함되지 않아요.</p>
 
         <button className="primary-btn sticky bottom-5 w-full" type="submit">
           결과 보기
@@ -359,6 +380,9 @@ function HomeScreen({
   onEdit: () => void;
 }) {
   const [shareMessage, setShareMessage] = useState('');
+  const [showShareLink, setShowShareLink] = useState(false);
+  const [missionDone, setMissionDone] = useState(false);
+  const [selectedMetric, setSelectedMetric] = useState('전체');
   const mainMetric = topMetric(report.today.metrics);
   const overallMetric = report.today.metrics.find((metric) => metric.label === '전체') ?? mainMetric;
   const needed = report.interpretation.supportiveElements[0];
@@ -367,6 +391,23 @@ function HomeScreen({
   const dominant = dominantElement(report);
   const title = resultTitle(report);
   const shareUrl = buildShareUrl(report);
+  const highlighted = report.today.metrics.find(metric => metric.label === selectedMetric) ?? overallMetric;
+  const metricHints: Record<string, string> = {
+    '전체': report.today.advice,
+    '재물': '오늘의 소비를 한 번 돌아보고, 필요한 것부터 골라봐요.',
+    '일': '가장 작은 일부터 끝내며 나만의 리듬을 만들어봐요.',
+    '관계': '고마웠던 사람에게 짧은 안부를 건네봐요.',
+    '연애': '내 마음을 먼저 살피고, 부담 없는 대화부터 시작해봐요.',
+  };
+
+  async function saveCard() {
+    try {
+      await downloadFortuneCard({name: report.user.name || '나', score: overallMetric.value, title, summary: report.today.summary, date: formatToday()});
+      setShareMessage('카드 이미지를 저장했어요. 스토리에도 올려보세요.');
+    } catch {
+      setShareMessage('이미지 저장이 안 되면 링크로 공유해주세요.');
+    }
+  }
 
   async function shareToday() {
     const text = `${report.user.name || '나'}님의 운세 카드: ${title}. 오늘 전체 흐름은 ${overallMetric.value}점이에요.`;
@@ -384,18 +425,29 @@ function HomeScreen({
       }
       await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
       setShareMessage('친구가 볼 수 있는 링크를 복사했어요');
+    } catch (error) {
+      setShareMessage(error instanceof DOMException && error.name === 'AbortError' ? '공유를 취소했어요' : '링크를 복사하지 못했어요. 다시 시도해주세요.');
+      if (!(error instanceof DOMException && error.name === 'AbortError')) setShowShareLink(true);
+    }
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareMessage('친구가 볼 수 있는 링크를 복사했어요');
     } catch {
-      setShareMessage('공유를 잠시 취소했어요');
+      setShowShareLink(true);
+      setShareMessage('아래 링크를 길게 누르거나 선택해서 복사해주세요.');
     }
   }
 
   return (
     <section className="space-y-5 animate-enter">
-      <TopBar title="오늘의 카드" subtitle={formatToday()} onEdit={onEdit} />
+      <TopBar title={`${report.user.name || '나'}님의 오늘`} subtitle={formatToday()} onEdit={onEdit} />
 
-      <section className="overflow-hidden rounded-[30px] bg-[#101828] p-5 text-white shadow-[0_18px_44px_rgba(16,24,40,0.24)]">
+      <section className="result-hero overflow-hidden rounded-[30px] p-6 text-white">
         <div className="flex items-center justify-between">
-          <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-black text-white/70">Share Card</span>
+          <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-black text-white/90">✦ 오늘의 운세 카드</span>
           <span className="text-xs font-black text-[#d7ff63]">{mainMetric.label} 흐름 강함</span>
         </div>
         <div className="mt-8 flex items-start justify-between gap-4">
@@ -404,32 +456,25 @@ function HomeScreen({
             <h1 className="mt-2 text-[56px] font-black leading-none tracking-[-0.02em]">{overallMetric.value}</h1>
             <p className="mt-2 text-sm font-bold text-white/55">오늘 기준 점수</p>
           </div>
-          <div className="grid h-16 w-16 place-items-center rounded-[22px] bg-[#d7ff63] text-[#101828]">
-            <Sparkles size={26} />
-          </div>
+          <div className="result-mascot"><LuckMascot /></div>
         </div>
         <h2 className="mt-6 text-[25px] font-black leading-snug tracking-[-0.01em]">{title}</h2>
         <p className="mt-3 text-sm font-bold leading-6 text-white/70">{report.today.summary}</p>
-        <button className="mt-6 flex w-full items-center justify-between rounded-[22px] bg-white px-4 py-4 text-left text-[#101828]" onClick={shareToday}>
-          <span>
-            <span className="block text-xs font-black text-slate-500">친구에게 보내기</span>
-            <strong className="mt-1 block text-base">내 카드 링크 공유</strong>
-            {shareMessage && <span className="mt-1 block text-xs font-bold text-slate-500">{shareMessage}</span>}
-          </span>
-          <Share2 size={18} />
-        </button>
+        <div className="share-actions"><button onClick={shareToday}><Share2 size={17} /> 친구에게 보내기</button><button onClick={saveCard} aria-label="카드 이미지 저장"><Download size={19}/></button></div>
+        <button className="mt-3 text-xs text-white/80 underline underline-offset-4" onClick={copyLink}>링크만 복사하기</button>
+        {shareMessage && <p className="share-feedback" role="status">{shareMessage}</p>}
+        {showShareLink && <input aria-label="공유 링크" readOnly value={shareUrl} onFocus={event => event.target.select()} className="mt-2 w-full rounded-lg bg-white/15 p-3 text-xs text-white" />}
       </section>
 
-      <section className="grid grid-cols-3 gap-2">
-        {report.today.metrics.slice(1, 4).map((metric) => (
-          <MetricPill key={metric.label} metric={metric} />
-        ))}
+      <section className="metric-panel">
+        <div className="metric-tabs" aria-label="운세 분야">{report.today.metrics.map(metric => <button key={metric.label} aria-pressed={selectedMetric === metric.label} onClick={() => setSelectedMetric(metric.label)}><span>{metric.label}</span><strong>{metric.value}</strong></button>)}</div>
+        <div className="metric-insight"><span><Heart size={16}/>{highlighted.label} 흐름</span><p>{metricHints[selectedMetric]}</p></div>
       </section>
 
       <section className="rounded-[28px] bg-white p-5 shadow-sm">
-        <SectionLabel icon={<CheckCircle2 size={17} />} title="오늘은 이것만" />
+        <div className="flex items-center justify-between"><SectionLabel icon={<CheckCircle2 size={17} />} title="오늘의 작은 미션" /><span className="text-xs font-bold text-slate-400">{missionDone ? '1 / 1 완료' : '0 / 1 완료'}</span></div>
         <div className="mt-5 grid gap-3">
-          <MissionLine index="1" title="해볼 것" value={report.today.advice} active />
+          <button className={`mission-check ${missionDone ? 'is-done' : ''}`} aria-pressed={missionDone} onClick={() => setMissionDone(!missionDone)}><CheckCircle2 size={23}/><span><small>{missionDone ? '좋아요, 오늘도 한 걸음!' : '가볍게 하나만 해볼까요?'}</small><strong>{report.today.advice}</strong></span></button>
           <MissionLine index="2" title="덜어낼 것" value={report.today.avoid} />
         </div>
       </section>
@@ -456,6 +501,7 @@ function HomeScreen({
           onClick={() => onPickTab('flow')}
         />
       </section>
+      <p className="entertainment-note">점수와 해석은 재미로 참고해주세요.<br/>중요한 선택은 내 상황과 판단을 먼저 살펴요.</p>
     </section>
   );
 }
@@ -652,9 +698,9 @@ function Segmented({
 
 function BottomNav({ tab, setTab }: { tab: Tab; setTab: (tab: Tab) => void }) {
   const items = [
-    ['home', '홈', Home],
+    ['home', '오늘', Home],
     ['flow', '흐름', LineChart],
-    ['me', '분석', CircleUserRound],
+    ['me', '나의 기운', CircleUserRound],
   ] as const;
 
   return (
@@ -666,6 +712,7 @@ function BottomNav({ tab, setTab }: { tab: Tab; setTab: (tab: Tab) => void }) {
             tab === key ? 'bg-[#101828] text-white' : 'text-slate-400'
           }`}
           onClick={() => setTab(key)}
+          aria-current={tab === key ? 'page' : undefined}
         >
           <Icon size={18} />
           {label}
@@ -680,15 +727,6 @@ function SectionLabel({ icon, title }: { icon: React.ReactNode; title: string })
     <div className="flex items-center gap-2">
       <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#eef4ff] text-[#2563eb]">{icon}</span>
       <h2 className="text-xl font-black">{title}</h2>
-    </div>
-  );
-}
-
-function MetricPill({ metric }: { metric: FortuneMetric }) {
-  return (
-    <div className="rounded-[20px] bg-white p-4 text-center shadow-sm">
-      <span className="block text-xs font-black text-slate-500">{metric.label}</span>
-      <strong className="mt-1 block text-2xl font-black text-[#2563eb]">{metric.value}</strong>
     </div>
   );
 }
@@ -869,9 +907,8 @@ function userFriendlyPersonality(report: FortuneReport) {
 }
 
 function resultTitle(report: FortuneReport) {
-  const dayMaster = report.core.dayMaster.label.split(' ')[0];
   const metric = topMetric(report.today.metrics);
-  return `${dayMaster} 타입, 오늘은 ${metric.label} 운이 먼저 움직여요`;
+  return { '재물': '작은 선택에서 좋은 기회를 발견할 날', '일': '작은 시작이 좋은 흐름을 만들어요', '관계': '먼저 건넨 한마디가 하루를 바꿀지도', '연애': '마음을 나누면 조금 더 가까워지는 날' }[metric.label] ?? '나만의 속도로 좋은 하루를 만들어봐요';
 }
 
 function buildShareUrl(report: FortuneReport) {
